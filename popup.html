@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="jquery-ui.min.css">
+    <link rel="stylesheet" href="popup.css">
+    <script src="jquery-3.2.1.min.js"></script>
+    <script src="jquery-ui.min.js"></script>
+    <script src="popup.js"></script>
+  </head>
+  <body>
+    <form id="addRouteForm">
+      <table id="addRouteTable">
+        <tr>
+          <td>
+            <input type="text" name="from" id="from" placeholder="Z" required>
+          </td>
+          <td>
+            <input type="text" name="to" id="to" placeholder="Do" required>
+          </td>
+          <td>
+            <input type="submit" name="addRoute" id="addRoute" value="Přidat trasu">
+          </td>
+        </tr>
+        <tr>
+          <td><div id="fromError"></div></td>
+          <td><div id="toError"></div></td>
+          <td></td>
+        </tr>
+      </table>
+    </form>
+    <div id="contents">
+      <div id="routes"></div>
+      <div id="connections"></div>
+    </div>
+  </body>
+</html>

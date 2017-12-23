@@ -1,0 +1,78 @@
+body {
+  margin: 0px;
+  font-family: Cantarell, Arial, sans-serif;
+}
+
+#addRouteTable {
+  background-color: #01b258;
+  padding: 10px;
+  color: #ffffff;
+}
+
+#contents {
+  margin: 5px 20px 20px 20px;
+}
+
+.placeholder {
+  height: 200px;
+  border: 2px dashed #cccccc;
+  background-image: url("images/idsjmk.png");
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
+#routes {
+  margin-bottom: 16px;
+  width: 100%;
+  text-align: center;
+}
+
+.routeBox {
+  color: #01b258;
+  background-color: #ffffff;
+  margin: 2px;
+  padding: 5px;
+  border: 1px solid #01b258;
+  border-radius: 3px;
+  text-decoration: none;
+  font-weight: bold;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+.routeBox a {
+  color: #01b258;
+  text-decoration: none;
+  font-weight: bold;
+  display: inline-block;
+}
+
+.routeBox .setDefaultRoute {
+  padding: 0px 15px;
+}
+
+.defaultRoute {
+  background-color: #01b258;
+}
+
+.defaultRoute a {
+  color: #ffffff;
+}
+
+input {
+  height: 17px;
+  padding: 5px;
+  border: 1px solid #ffffff;
+  box-sizing: content-box;
+  font-family: Cantarell, Arial, sans-serif;
+}
+
+input[type=submit] {
+  color: #ffffff;
+  background-color: #01b258;
+  font-weight: bold;
+}
+
+input:focus {
+  outline: 0px;
+}
