@@ -28,7 +28,7 @@ var addRoute = function(from, to) {
  */
 var stopExists = function(stop, stopError) {
   return $.ajax({
-    url: "http://idsjmk.cz/SelectBusStop/SelectBusStop.asmx/SearchBusStop3",
+    url: "https://www.idsjmk.cz/SelectBusStop/SelectBusStop.asmx/SearchBusStop3",
     type: "POST",
     contentType: "application/json; charset=utf-8",
     dataType: "json",
@@ -61,7 +61,7 @@ var stopExists = function(stop, stopError) {
  */
 var autocompleteSource = function(request, response) {
   $.ajax({
-    url: "http://idsjmk.cz/SelectBusStop/SelectBusStop.asmx/SearchBusStop3",
+    url: "https://www.idsjmk.cz/SelectBusStop/SelectBusStop.asmx/SearchBusStop3",
     type: "POST",
     contentType: "application/json; charset=utf-8",
     dataType: "json",
@@ -90,7 +90,7 @@ var submitHandler = function(event) {
   $.when(
     // Validate `from` field
     $.ajax({
-      url: "http://idsjmk.cz/SelectBusStop/SelectBusStop.asmx/SearchBusStop3",
+      url: "https://www.idsjmk.cz/SelectBusStop/SelectBusStop.asmx/SearchBusStop3",
       type: "POST",
       contentType: "application/json; charset=utf-8",
       dataType: "json",
@@ -110,7 +110,7 @@ var submitHandler = function(event) {
     }),
     // Validate `to` field
     $.ajax({
-      url: "http://idsjmk.cz/SelectBusStop/SelectBusStop.asmx/SearchBusStop3",
+      url: "https://www.idsjmk.cz/SelectBusStop/SelectBusStop.asmx/SearchBusStop3",
       type: "POST",
       contentType: "application/json; charset=utf-8",
       dataType: "json",
@@ -212,7 +212,7 @@ $(function() {
           toEncoded = encodeURI(to);
 
           // Construct full URL
-          var url = 'http://idsjmk.cz/spojeni.aspx';
+          var url = 'https://www.idsjmk.cz/spojeni.aspx';
           url += '?f=' + fromEncoded + '&t=' + toEncoded;
           url += '&date=' + date + '&time=' + time;
 
@@ -228,7 +228,7 @@ $(function() {
               $('#connections').html($(response).find('#ConnectionLabel'));
             },
             error: function() {
-              $('#connections').html('Something went wrong');
+              $('#connections').html('Chyba serveru');
             }
           });
         }
