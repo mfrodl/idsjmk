@@ -3,7 +3,7 @@
  */
 Array.prototype.includesArray = function(value) {
     var hash = {};
-    for(var i = 0; i < this.length; i++) {
+    for (var i = 0; i < this.length; i++) {
         hash[this[i]] = i;
     }
     return hash.hasOwnProperty(value);
@@ -151,6 +151,62 @@ var submitHandler = function(event) {
   });
 }
 
+/*
+ * Find connection for given route and time and show them in popup window
+ */
+var showConnections = function(from, to, datetime) {
+  // Construct full URL
+  var date = datetime.format('D.M.YY');
+  var time = datetime.format('H:mm');
+  var query = {f: from, t: to, date: date, time: time};
+  var url = 'https://www.idsjmk.cz/spojeni.aspx?' + $.param(query);
+
+  // Find connections and show them
+  $.ajax({
+    url: url,
+    context: document.body,
+    success: function(response) {
+      // Display found connections
+      $('#connections').append($(response).find('#ConnectionLabel'));
+
+      // Parse date and time of last connection from response
+      var timeString = [
+        $(response).find('th.left_w6p').last().text(),
+        $(response).find('th.time_w6p').last().text()
+      ].join(' ');
+
+      // Convert the time to moment in Europe/Prague timezone
+      var newTime = moment.tz(timeString, "D.M. H:mm", "Europe/Prague");
+      // Add 1 minute to avoid duplicate results
+      newTime.add(1, 'minutes');
+      // When the new time is less than the old one, we have probably hit turn
+      // of year, so the year needs to be incremented
+      if (newTime < datetime) {
+        newTime.add(1, 'years');
+      }
+
+      console.log(datetime.format() + ' >>> ' + newTime.format());
+
+      // Show link to find more connections
+      $('#showMore').html(
+        $('<a/>').attr({href: '#', id: 'showMoreLink'}).html('Další spoje')
+      );
+      // Link handler
+      $('#showMoreLink').click(function() {
+        $('#showMore').html(
+          $('<img/>').attr({src: 'images/loading-bar.gif'})
+        );
+        showConnections(from, to, newTime);
+        return false;
+      });
+
+    },
+    error: function() {
+      $('#connections').html('Chyba serveru');
+    }
+  });
+}
+
 $(function() {
   // Set autocomplete for input fields
   $('#from').autocomplete({source: autocompleteSource});
@@ -162,16 +218,6 @@ $(function() {
   // Load saved routes from local storage
   chrome.storage.local.get({'routes': [], 'defaultRoute': 0},
     function(result) {
-      // Get current date and time and format them for URL
-      var dateTime = new Date();
-      var day = dateTime.getDate();
-      var month = dateTime.getMonth() + 1;
-      var year = dateTime.getFullYear() - 2000;
-      var date = day + '.' + month + '.' + year;
-      var hours = dateTime.getHours();
-      var minutes = dateTime.getMinutes();
-      var time = hours + ':' + minutes;
-
       // Show placeholder when no routes available
       var showPlaceholder = true;
 
@@ -204,33 +250,13 @@ $(function() {
 
         // Find nearest connections for default route
         if (i == result.defaultRoute) {
-          // Highlight the default route
-          routeBox.addClass('defaultRoute');
+            // Highlight the default route
+            routeBox.addClass('defaultRoute');
 
-          // Encode both stops for URL
-          fromEncoded = encodeURI(from);
-          toEncoded = encodeURI(to);
+            // Get current date and time and format them for URL
+            datetime = moment().tz('Europe/Prague');
 
-          // Construct full URL
-          var url = 'https://www.idsjmk.cz/spojeni.aspx';
-          url += '?f=' + fromEncoded + '&t=' + toEncoded;
-          url += '&date=' + date + '&time=' + time;
-
-          // Show a loading icon until results are available
-          $('#connections').html('<img src="images/loading.gif">');
-          $('#connections').width('441px');
-
-          // Find connections and show them
-          $.ajax({
-            url: url,
-            context: document.body,
-            success: function(response) {
-              $('#connections').html($(response).find('#ConnectionLabel'));
-            },
-            error: function() {
-              $('#connections').html('Chyba serveru');
-            }
-          });
+            showConnections(from, to, datetime);
         }
 
         $('#routes').append(routeBox);
