@@ -161,6 +161,11 @@ var showConnections = function(from, to, datetime) {
   var query = {f: from, t: to, date: date, time: time};
   var url = 'https://www.idsjmk.cz/spojeni.aspx?' + $.param(query);
 
+  // Show loading bar
+  $('#showMore').html(
+    $('<img/>').attr({src: 'images/loading-bar.gif'})
+  );
+
   // Find connections and show them
   $.ajax({
     url: url,
@@ -170,10 +175,16 @@ var showConnections = function(from, to, datetime) {
       $('#connections').append($(response).find('#ConnectionLabel'));
 
       // Parse date and time of last connection from response
-      var timeString = [
-        $(response).find('th.left_w6p').last().text(),
-        $(response).find('th.time_w6p').last().text()
-      ].join(' ');
+      var lastDate = $(response).find('th.left_w6p').last().text();
+      var lastTime = $(response).find('th.time_w6p').last().text();
+
+      // Failed to parse date and/or time, do not display search link
+      if (lastDate == '' || lastTime == '') {
+        $('#showMore').empty();
+        return;
+      }
+
+      var timeString = [lastDate, lastTime].join(' ');
 
       // Convert the time to moment in Europe/Prague timezone
       var newTime = moment.tz(timeString, "D.M. H:mm", "Europe/Prague");
@@ -185,24 +196,19 @@ var showConnections = function(from, to, datetime) {
         newTime.add(1, 'years');
       }
 
-      console.log(datetime.format() + ' >>> ' + newTime.format());
-
       // Show link to find more connections
       $('#showMore').html(
         $('<a/>').attr({href: '#', id: 'showMoreLink'}).html('Další spoje')
       );
       // Link handler
       $('#showMoreLink').click(function() {
-        $('#showMore').html(
-          $('<img/>').attr({src: 'images/loading-bar.gif'})
-        );
         showConnections(from, to, newTime);
         return false;
       });
 
     },
     error: function() {
-      $('#connections').html('Chyba serveru');
+      $('#showMore').html('Chyba serveru');
     }
   });
 }
@@ -263,6 +269,7 @@ $(function() {
       }
 
       if (showPlaceholder) {
+        $('#showMore').empty();
         $('#connections').addClass('placeholder');
       }
       else {
@@ -284,6 +291,7 @@ $(function() {
 
         // Hide search results when default route is deleted
         if (routeNumber == result.defaultRoute) {
+          $('#showMore').empty();
           $('#connections').empty();
           $('#connections').addClass('placeholder');
         }

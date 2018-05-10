@@ -3,7 +3,7 @@
   "name": "Vyhledávač spojení IDS JMK",
   "short_name": "IDS JMK",
   "description": "Vaše oblíbené spoje na jedno kliknutí",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "author": "Martin Frodl",
   "browser_action": {
     "default_icon": "images/icon16.png",
