@@ -3,60 +3,60 @@ body {
   font-family: Cantarell, Arial, sans-serif;
 }
 
-#addRouteTable {
-  background-color: #01b258;
+#searchTable {
+  width: 500px;
+  background-color: #32cd32;
   padding: 10px;
+  margin: 0px;
   color: #ffffff;
 }
 
+#searchTable td:not([rowspan="2"]) {
+  vertical-align: top;
+}
+
 #contents {
-  margin: 5px 20px 20px 20px;
+  width: 100%;
 }
 
 .placeholder {
   height: 200px;
-  border: 2px dashed #cccccc;
   background-image: url("images/idsjmk.png");
   background-position: center center;
   background-repeat: no-repeat;
 }
 
 #routes {
-  margin-bottom: 16px;
+  background-color: #000000;
+  padding: 0px;
   width: 100%;
   text-align: center;
 }
 
 .routeBox {
-  color: #01b258;
-  background-color: #ffffff;
+  color: #32cd32;
   margin: 2px;
-  padding: 5px;
-  border: 1px solid #01b258;
-  border-radius: 3px;
+  padding: 0px 8px;
   text-decoration: none;
-  font-weight: bold;
   white-space: nowrap;
   display: inline-block;
 }
 
 .routeBox a {
-  color: #01b258;
+  color: #32cd32;
   text-decoration: none;
-  font-weight: bold;
   display: inline-block;
-}
-
-.routeBox .setDefaultRoute {
-  padding: 0px 15px;
-}
-
-.defaultRoute {
-  background-color: #01b258;
 }
 
 .defaultRoute a {
   color: #ffffff;
+  font-weight: bold;
+}
+
+#connectionsShowMore {
+  padding: 20px 0px 0px 20px;
+  max-height: 220px;
+  overflow: auto;
 }
 
 input {
@@ -65,11 +65,17 @@ input {
   border: 1px solid #ffffff;
   box-sizing: content-box;
   font-family: Cantarell, Arial, sans-serif;
+  width: 200px;
+  border-radius: 2px;
+}
+
+input#date, input#time {
+  width: 60px;
 }
 
 input[type=submit] {
   color: #ffffff;
-  background-color: #01b258;
+  background-color: #32cd32;
   font-weight: bold;
 }
 
@@ -77,6 +83,11 @@ input:focus {
   outline: 0px;
 }
 
+#fromError, #toError {
+  color: #ff0000;
+}
+
 #showMore {
+  margin-bottom: 15px;
   text-align: center;
 }

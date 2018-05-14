@@ -1,59 +1,17 @@
 /*
- * Helper function to check if array contains a specific array
+ * Route class
  */
-Array.prototype.includesArray = function(value) {
-    var hash = {};
-    for (var i = 0; i < this.length; i++) {
-        hash[this[i]] = i;
-    }
-    return hash.hasOwnProperty(value);
+function Route(from, to) {
+  this.from = from;
+  this.to = to;
+  this.views = 0;
 }
 
 /*
- * Add route to storage if not present yet
+ * Helper function to test route equality
  */
-var addRoute = function(from, to) {
-  chrome.storage.local.get('routes', function(result) {
-    var routes = result.routes;
-    if (!routes.includesArray([from, to])) {
-      routes.push([from, to]);
-      chrome.storage.local.set({routes: routes});
-      location.reload();
-    }
-  });
-}
-
-/*
- * Check that stop with given name exists
- */
-var stopExists = function(stop, stopError) {
-  return $.ajax({
-    url: "https://www.idsjmk.cz/SelectBusStop/SelectBusStop.asmx/SearchBusStop3",
-    type: "POST",
-    contentType: "application/json; charset=utf-8",
-    dataType: "json",
-    data: JSON.stringify({
-      query: stop,
-      includeStopsNotInDb: true
-    }),
-    success: function(data) {
-      var stops = data.d.map(x => x.FullName.toLowerCase());
-      var found = stops.includes(stop.toLowerCase());
-
-      if (found) {
-        // OK, both stops exist, add them to storage
-        $('#' + stopError).html('Zastávka nalezena');
-        return true;
-      }
-      else {
-        $('#' + stopError).html('Zastávka nenalezena');
-        return false;
-      }
-    },
-    error: function() {
-      $('#' + stopError).html('Chyba serveru');
-    }
-  });
+Route.prototype.equals = function(other) {
+  return (this.from == other.from && this.to == other.to);
 }
 
 /*
@@ -135,17 +93,37 @@ var submitHandler = function(event) {
 
     if (fromFound && toFound) {
       // Both stops exist, update saved routes and reload
+      var searchedRoute = new Route(from, to);
+
       chrome.storage.local.get({'routes': []}, function(result) {
         var routes = result.routes;
-        var defaultRoute = result.routes.length;
-        if (!routes.includesArray([from, to])) {
-          routes.push([from, to]);
-          chrome.storage.local.set({
-            routes: routes,
-            defaultRoute: defaultRoute
-          });
-          location.reload();
+        var routeFound = false;
+
+        // Check if the searched route is among the saved routes
+        for (var i = 0; i < routes.length; i++) {
+          if (searchedRoute.equals(routes[i])) {
+            routeFound = true;
+            searchedRoute = routes[i];
+            break;
+          }
         }
+
+        // Searched route not found in saved routes, add it
+        if (!routeFound) {
+          routes.push(searchedRoute);
+        }
+
+        // Increment number of views for route
+        searchedRoute.views++;
+
+        // Save updated routes to storage
+        chrome.storage.local.set({
+          routes: routes,
+          defaultRoute: searchedRoute
+        });
+
+        // Reload popup
+        location.reload();
       });
     }
   });
@@ -154,11 +132,11 @@ var submitHandler = function(event) {
 /*
  * Find connection for given route and time and show them in popup window
  */
-var showConnections = function(from, to, datetime) {
+var showConnections = function(from, to, datetime, lowdtr) {
   // Construct full URL
   var date = datetime.format('D.M.YY');
   var time = datetime.format('H:mm');
-  var query = {f: from, t: to, date: date, time: time};
+  var query = {f: from, t: to, date: date, time: time, lowdtr: lowdtr};
   var url = 'https://www.idsjmk.cz/spojeni.aspx?' + $.param(query);
 
   // Show loading bar
@@ -202,7 +180,7 @@ var showConnections = function(from, to, datetime) {
       );
       // Link handler
       $('#showMoreLink').click(function() {
-        showConnections(from, to, newTime);
+        showConnections(from, to, newTime, lowdtr);
         return false;
       });
 
@@ -218,54 +196,59 @@ $(function() {
   $('#from').autocomplete({source: autocompleteSource});
   $('#to').autocomplete({source: autocompleteSource});
 
+  $('#date').datepicker({dateFormat: 'd.m.y'});
+
+  // Show current date and time in input fields
+  datetime = moment().tz('Europe/Prague');
+  $('#time').val(datetime.format('H:mm'));
+  $('#date').val(datetime.format('D.M.YY'));
+
   // Form submit handler
-  $('#addRouteForm').submit(submitHandler);
+  $('#searchForm').submit(submitHandler);
 
   // Load saved routes from local storage
-  chrome.storage.local.get({'routes': [], 'defaultRoute': 0},
+  chrome.storage.local.get({'routes': [], 'defaultRoute': null, 'lowdtr': 0},
     function(result) {
+      // Set opacity of wheelchair icon
+      $('#wheelchair').css('opacity', result.lowdtr ? 1 : 0.5);
+
+      var defaultRoute = result.defaultRoute;
+
       // Show placeholder when no routes available
       var showPlaceholder = true;
 
-      for (var i = 0; i < result.routes.length; i++) {
-        if (result.routes[i] == null) {
-          // Deleted route, skip
-          continue;
-        }
-
+      // Show six routes with most views
+      var routes = result.routes.sort((x, y) => x.views - y.views).slice(-6);
+      for (let route of routes) {
         showPlaceholder = false;
 
-        var [from, to] = result.routes[i];
-
-        var route = $('<a/>')
+        var routeLink = $('<a/>')
           .attr({href: '#'})
           .addClass('setDefaultRoute')
-          .data('number', i)
-          .html(from + ' &raquo; ' + to);
-
-        var deleteRoute = $('<a/>')
-          .attr({href: '#'})
-          .addClass('deleteRoute')
-          .data('number', i)
-          .html('&#x274c;')
+          .data('from', route.from)
+          .data('to', route.to)
+          .html(route.from + ' &raquo; ' + route.to);
 
         var routeBox = $('<div/>')
           .addClass('routeBox')
-          .append(route)
-          .append(deleteRoute);
+          .append(routeLink)
 
         // Find nearest connections for default route
-        if (i == result.defaultRoute) {
-            // Highlight the default route
-            routeBox.addClass('defaultRoute');
+        if (route.from == defaultRoute.from && route.to == defaultRoute.to) {
+          // Highlight the default route and make it unclickable
+          routeBox.addClass('defaultRoute');
+          routeLink.removeClass('setDefaultRoute');
+          routeLink.removeAttr('href');
 
-            // Get current date and time and format them for URL
-            datetime = moment().tz('Europe/Prague');
+          // Show default route in input fields
+          $('#from').val(route.from);
+          $('#to').val(route.to);
 
-            showConnections(from, to, datetime);
+          showConnections(route.from, route.to, datetime, result.lowdtr);
         }
 
         $('#routes').append(routeBox);
+        $('#routes').css('padding', '5px');
       }
 
       if (showPlaceholder) {
@@ -276,25 +259,36 @@ $(function() {
         $('#connections').removeClass('placeholder');
       }
 
+      // Submit form on Enter
+      $('input').keypress(function(e) {
+        if (e.which == 13) {
+          $('#from').autocomplete('close');
+          $('#to').autocomplete('close');
+          $('#searchForm').submit();
+        }
+      });
+
       // Change default route and reload when a link is clicked
       $('a.setDefaultRoute').click(function() {
-        chrome.storage.local.set({defaultRoute: $(this).data('number')});
+        var defaultRoute = new Route($(this).data('from'), $(this).data('to'));
+        chrome.storage.local.set({defaultRoute: defaultRoute});
         location.reload();
       });
 
-      // Delete route when a delete link is clicked
-      $('a.deleteRoute').click(function() {
-        var routeNumber = $(this).data('number');
-        delete result.routes[routeNumber];
-        chrome.storage.local.set({routes: result.routes});
-        $(this).closest('div').remove();
+      // From-to swap handler
+      $('#swapFromTo').click(function() {
+        var from = $('#from').val()
+        var to = $('#to').val();
+        $('#from').val(to);
+        $('#to').val(from);
+        $('#searchForm').submit();
+      });
 
-        // Hide search results when default route is deleted
-        if (routeNumber == result.defaultRoute) {
-          $('#showMore').empty();
-          $('#connections').empty();
-          $('#connections').addClass('placeholder');
-        }
+      // Low-floor switch handler
+      $('#wheelchair').click(function() {
+        chrome.storage.local.set({'lowdtr': 1 - result.lowdtr}, function() {
+          location.reload();
+        })
       });
     }
   );

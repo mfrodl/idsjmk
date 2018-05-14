@@ -11,30 +11,48 @@
     <script src="popup.js"></script>
   </head>
   <body>
-    <form id="addRouteForm">
-      <table id="addRouteTable">
+    <div id="searchFormDiv">
+    <form id="searchForm">
+      <table id="searchTable">
         <tr>
-          <td>
-            <input type="text" name="from" id="from" placeholder="Z" required>
+          <td rowspan="2">
+            <a href="#" id="swapFromTo"><img src="images/swap.png"></a>
           </td>
           <td>
-            <input type="text" name="to" id="to" placeholder="Do" required>
+            <input type="text" name="from" id="from" placeholder="Z" tabindex="1" required>
+            <div id="fromError"></div>
           </td>
           <td>
-            <input type="submit" name="addRoute" id="addRoute" value="Přidat trasu">
+            <img src="images/clock.png">
+          </td>
+          <td>
+            <input type="text" name="time" id="time" tabindex="3" required>
+          </td>
+          <td rowspan="2" id="tdWheelchair">
+            <a href="#" id="wheelchair"><img src="images/wheelchair.png"></a>
           </td>
         </tr>
         <tr>
-          <td><div id="fromError"></div></td>
-          <td><div id="toError"></div></td>
-          <td></td>
+          <td>
+            <input type="text" name="to" id="to" placeholder="Do" tabindex="2" required>
+            <div id="toError"></div>
+          </td>
+          <td>
+            <img src="images/calendar.png">
+          </td>
+          <td>
+            <input type="text" name="date" id="date" tabindex="4" required>
+          </td>
         </tr>
       </table>
     </form>
+    </div>
     <div id="contents">
       <div id="routes"></div>
-      <div id="connections"></div>
-      <div id="showMore"></div>
+      <div id="connectionsShowMore">
+        <div id="connections"></div>
+        <div id="showMore"></div>
+      </div>
     </div>
   </body>
 </html>
