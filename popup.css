@@ -55,7 +55,8 @@ body {
 
 #connectionsShowMore {
   padding: 20px 0px 0px 20px;
-  max-height: 220px;
+  min-height: 120px;
+  max-height: 440px;
   overflow: auto;
 }
 
@@ -90,4 +91,5 @@ input:focus {
 #showMore {
   margin-bottom: 15px;
   text-align: center;
+  vertical-align: middle;
 }
