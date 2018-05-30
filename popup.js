@@ -94,7 +94,7 @@ var submitHandler = function(event) {
     if (fromFound && toFound) {
       // Both stops exist, update saved routes and reload
       var searchedRoute = new Route(from, to);
-      updateStatsAndReload(searchedRoute);
+      updateStatsAndRedraw(searchedRoute);
     }
   });
 }
@@ -102,7 +102,7 @@ var submitHandler = function(event) {
 /*
  * Update search statistics in browser storage and reload popup
  */
-var updateStatsAndReload = function(route) {
+var updateStatsAndRedraw = function(route) {
   chrome.storage.local.get({'routes': []}, function(result) {
     var routes = result.routes;
     var routeFound = false;
@@ -130,7 +130,7 @@ var updateStatsAndReload = function(route) {
       defaultRoute: route
     });
 
-    // Reload popup
+    // Redraw popup
     redraw();
   });
 }
@@ -166,17 +166,17 @@ var showConnections = function(from, to, date, time, lowdtr) {
         return;
       }
 
-      var datetime = moment.tz(`${date} ${time}`, 'D.M. H:mm', 'Europe/Prague');
-
-      var timeString = [lastDate, lastTime].join(' ');
+      var dateTime = moment.tz(`${date} ${time}`, 'D.M. H:mm', 'Europe/Prague');
 
       // Convert the time to moment in Europe/Prague timezone
-      var newDateTime = moment.tz(timeString, "D.M. H:mm", "Europe/Prague");
+      var newDateTime = moment.tz(
+        `${lastDate} ${lastTime}`, "D.M. H:mm", "Europe/Prague"
+      );
       // Add 1 minute to avoid duplicate results
       newDateTime.add(1, 'minutes');
       // When the new time is less than the old one, we have probably hit turn
       // of year, so the year needs to be incremented
-      if (newDateTime < datetime) {
+      if (newDateTime < dateTime) {
         newDateTime.add(1, 'years');
       }
 
@@ -203,13 +203,14 @@ var redraw = function() {
   // Load saved routes from local storage
   chrome.storage.local.get({'routes': [], 'defaultRoute': null, 'lowdtr': 0},
     function(result) {
-      // Set opacity of wheelchair icon
-      $('#wheelchair').css('opacity', result.lowdtr ? 1 : 0.5);
+      // Check wheelchair checkbox when relevant
+      $('#wheelchair').prop('checked', !!result.lowdtr);
 
       // Show default route in input fields and search for connection or show
       // placeholder when no default route available
       var defaultRoute = result.defaultRoute;
       if (defaultRoute) {
+        $('#connectionsShowMore').show();
         $('#from').val(defaultRoute.from);
         $('#to').val(defaultRoute.to);
         $('#connections').empty();
@@ -228,10 +229,13 @@ var redraw = function() {
       }
 
       // Show six routes with most views
-      $('#routes').empty();
-      var routes = result.routes.sort((x, y) => x.views - y.views).slice(-6);
+      $('.routeBox').remove();
+      $('#routes').hide();
+
+      var routes = result.routes.sort((x, y) => y.views - x.views).slice(0, 6);
       for (let route of routes) {
         showPlaceholder = false;
+        $('#routes').show();
 
         var routeLink = $('<a/>')
           .attr({href: '#'})
@@ -253,7 +257,7 @@ var redraw = function() {
         }
 
         $('#routes').append(routeBox);
-        $('#routes').css('padding', '5px');
+        $('#routes').css('padding', '5px 20px');
       }
 
       // Change default route and reload when a link is clicked
@@ -262,7 +266,6 @@ var redraw = function() {
         chrome.storage.local.set({defaultRoute: defaultRoute});
         redraw();
       });
-
     }
   );
 }
@@ -271,46 +274,47 @@ var redraw = function() {
  * From-to swap handler
  */
 var swapHandler = function() {
-  var newRoute = new Route($('#to').val(), $('#from').val());
-  chrome.storage.local.set({defaultRoute: newRoute});
-  updateStatsAndReload(newRoute);
+  var from = $('#from').val(), to = $('#to').val();
+  $('#from').val(to);
+  $('#to').val(from);
 }
 
 /*
  * Low-floor switch handler
  */
 var wheelchairHandler = function() {
-  chrome.storage.local.get({'lowdtr': 0}, function(result) {
-    chrome.storage.local.set({'lowdtr': 1 - result.lowdtr}, function() {
-      $('#searchForm').submit();
-    })
-  });
+  chrome.storage.local.set({'lowdtr': this.checked ? 1 : 0});
+}
+
+/*
+ * Clear search history button handler
+ */
+var clearHandler = function() {
+  chrome.storage.local.clear();
+  $('#routes').hide();
 }
 
 $(function() {
   // Set autocomplete for input fields
-  $('#from').autocomplete({
-    source: autocompleteSource,
-    select: function(event, ui) {
-      $('#from').val(ui.item.label);
-      $('#searchForm').submit();
-    }
-  });
-  $('#to').autocomplete({
-    source: autocompleteSource,
-    select: function(event, ui) {
-      $('#to').val(ui.item.label);
-      $('#searchForm').submit();
-    }
-  });
+  $('#from').autocomplete({source: autocompleteSource});
+  $('#to').autocomplete({source: autocompleteSource});
 
   // Enable date picker widget
   $('#date').datepicker({dateFormat: 'd.m.y'});
 
   // Show current date and time in input fields
-  var datetime = moment().tz('Europe/Prague');
-  $('#time').val(datetime.format('H:mm'));
-  $('#date').val(datetime.format('D.M.YY'));
+  var dateTime = moment().tz('Europe/Prague');
+  $('#time').val(dateTime.format('H:mm'));
+  $('#date').val(dateTime.format('D.M.YY'));
+
+  // Submit form on Enter
+  $('input').keypress(function(e) {
+    if (e.which == 13) {
+      $('#from').autocomplete('close');
+      $('#to').autocomplete('close');
+      $('#searchForm').submit();
+    }
+  });
 
   // Form submit handler
   $('#searchForm').submit(submitHandler);
@@ -321,9 +325,11 @@ $(function() {
   // Low-floor switch handler
   $('#wheelchair').click(wheelchairHandler);
 
-  // Submit form whenever time or date is changed
-  $('#time').change(submitHandler);
-  $('#date').change(submitHandler);
+  // Submit form when search icon is clicked
+  $('#search').click(submitHandler);
+
+  // Clear search history
+  $('#clearData').click(clearHandler);
 
   redraw();
 });

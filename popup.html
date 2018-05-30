@@ -15,40 +15,31 @@
     <form id="searchForm">
       <table id="searchTable">
         <tr>
-          <td rowspan="2">
-            <a href="#" id="swapFromTo"><img src="images/swap.png"></a>
-          </td>
-          <td>
-            <input type="text" name="from" id="from" placeholder="Z" tabindex="1" required>
-            <div id="fromError"></div>
-          </td>
-          <td>
-            <img src="images/clock.png">
-          </td>
-          <td>
-            <input type="text" name="time" id="time" tabindex="3" required>
-          </td>
-          <td rowspan="2" id="tdWheelchair">
-            <a href="#" id="wheelchair"><img src="images/wheelchair.png"></a>
-          </td>
+          <td rowspan="2"><a href="#" id="swapFromTo"><img src="images/swap.png"></a></td>
+          <td><input type="text" name="from" id="from" placeholder="Z" tabindex="1" required></td>
+          <td><img src="images/clock.png" width="24" height="24"></td>
+          <td><input type="text" name="time" id="time" required></td>
+          <td rowspan="3"><a href="#" id="search"><img src="images/search.svg" width="40" height="40"></a></td>
         </tr>
         <tr>
+          <td><input type="text" name="to" id="to" placeholder="Do" tabindex="2" required></td>
+          <td><img src="images/calendar.png" width="24" height="24"></td>
+          <td><input type="text" name="date" id="date" required></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td><input type="text" name="via" id="via" placeholder="Přes" tabindex="3" required></td>
+          <td><img src="images/wheelchair.png" width="24" height="24"></td>
           <td>
-            <input type="text" name="to" id="to" placeholder="Do" tabindex="2" required>
-            <div id="toError"></div>
-          </td>
-          <td>
-            <img src="images/calendar.png">
-          </td>
-          <td>
-            <input type="text" name="date" id="date" tabindex="4" required>
+            <input type="checkbox" name="wheelchair" id="wheelchair" required>
+            <label for="wheelchair"></label>
           </td>
         </tr>
       </table>
     </form>
     </div>
     <div id="contents">
-      <div id="routes"></div>
+      <div id="routes"><a href="#" id="clearData">&#x274c;</a></div>
       <div id="connectionsShowMore">
         <div id="connections"></div>
         <div id="showMore"></div>
