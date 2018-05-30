@@ -112,6 +112,7 @@ label {
   height: 22px;
   background: #cccccc;
   display: block;
+  border: 1px solid white;
   border-radius: 2px;
   position: relative;
   margin-left: 10px;
